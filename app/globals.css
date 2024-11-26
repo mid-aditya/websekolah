@@ -19,3 +19,50 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes ken-burns {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-ken-burns {
+  animation: ken-burns 20s ease infinite;
+}
+
+@keyframes slow-zoom {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.1);
+  }
+}
+
+.animate-slow-zoom {
+  animation: slow-zoom 20s linear infinite alternate;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 20s linear infinite;
+}
+
+/* Tambahkan hover pause */
+.animate-scroll:hover {
+  animation-play-state: paused;
+}
