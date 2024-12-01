@@ -1,12 +1,12 @@
 "use client";
-import Image from "next/image";
-import Navbar from "./components/Navbar/Navbar";
-import Footer from "./components/Footer/Footer";
-import { motion } from "framer-motion";
-import Link from "next/link";
-import { useState, useEffect } from "react";
+import { getVisitorIp, getVisitorStats, recordExit, recordVisit } from "@/lib/visitorStats";
 import { createClient } from "@supabase/supabase-js";
-import { getVisitorIp, recordVisit, recordExit, getVisitorStats } from "@/lib/visitorStats";
+import { motion } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import Footer from "./components/Footer/Footer";
+import Navbar from "./components/Navbar/Navbar";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -76,6 +76,15 @@ interface SelectedItem {
   data: Agenda | Informasi;
 }
 
+// Add type guard functions at the top level
+function isAgenda(item: Agenda | Informasi): item is Agenda {
+  return 'waktu' in item && 'lokasi' in item && 'deskripsi' in item;
+}
+
+function isInformasi(item: Agenda | Informasi): item is Informasi {
+  return 'isi' in item && 'keterangan' in item;
+}
+
 export default function Home() {
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
@@ -113,7 +122,15 @@ export default function Home() {
   } | null>(null);
 
   // Tambahkan state untuk statistik
-  const [visitorStats, setVisitorStats] = useState({
+  const [visitorStats, setVisitorStats] = useState<{
+    todayVisitors: number;
+    averageDuration: number;
+    activeVisitors: number;
+    weeklyData: {
+      days: string[];
+      counts: number[];
+    };
+  }>({
     todayVisitors: 0,
     averageDuration: 0,
     activeVisitors: 0,
@@ -875,7 +892,7 @@ export default function Home() {
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center">
                           <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2zM9 9h6v6H9V9z" />
                           </svg>
                         </div>
                       )}
@@ -1514,7 +1531,7 @@ export default function Home() {
               </div>
 
               {/* Content */}
-              {selectedItem.type === 'agenda' ? (
+              {isAgenda(selectedItem.data) ? (
                 <div className="space-y-4">
                   {/* Foto Agenda */}
                   {selectedItem.data.post?.galery?.[0]?.foto?.[0]?.file && (
@@ -1586,13 +1603,6 @@ export default function Home() {
                         'bg-gray-500/20 text-gray-500'
                       }`}>
                         {selectedItem.data.keterangan}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        {new Date(selectedItem.data.tanggal).toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric'
-                        })}
                       </span>
                     </div>
                     <h4 className="text-xl font-bold text-gray-900">{selectedItem.data.judul}</h4>
